@@ -3,7 +3,9 @@ exclude =
     .git,
     __pycache__,
     build,
-    .venv,
+    .venv/,
     venv, 
-    .conda
+    .conda,
+    misc/,
+    prompts/
 max-complexity = 10
