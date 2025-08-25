@@ -3,11 +3,14 @@
 import json
 
 
-def get_complex_v2_prompt(query: str):
+def get_complex_v2_prompt(query: str,
+                          selectors: dict = None):
     """
     Prompt specific to v2 data schema
     Enables aggregation pipeline building and  prompt caching
     """
+
+    additional_fields = json.dumps(selectors)
 
     sample_acquisition = json.dumps(
         {
@@ -1069,22 +1072,27 @@ To find the duration of an acquisition or session, strictly follow the following
 
     examples = """
 
-Here are some example queries and their filters:
-1.
-Question: "Retrieve records for subject 740955"
-Answer: {'subject.subject_id':'740955'}
-2.
-Question: "Retrieve records for subjects with genotype 'Sert-Cre/wt' in the project titled:
-Discovery-Neuromodulator circuit dynamics during foraging - Subproject 1 Electrophysiological Recordings from NM Neurons During Behavior" 
-Answer: {'subject.subject_details.genotype':'Sert-Cre/wt', "data_description.project_name":"
-Discovery-Neuromodulator circuit dynamics during foraging - Subproject 1 Electrophysiological Recordings from NM Neurons During Behavior"}
-3. 
-Question: "Retrieve records for subject x where qc evaluations for behaviour passed"
-Answer: {"subject.subject_id": "792288","quality_control.metrics": { $elemMatch: { "modality.name": "Behavior", "latest_status": "Pass"} }}
-4.
-Question: Retrieve records from the openscope project where the session type is OPHYS_9_moving_texture.
-Answer: 
- { "data_description.project_name": "OpenScope","acquisition.acquisition_type": "OPHYS_9_moving_texture"}
+    Here are some example queries and their filters:
+    1.
+    Question: "Retrieve records for subject 740955"
+    Answer: {'subject.subject_id':'740955'}
+    2.
+    Question: "Retrieve records for subjects with genotype 'Sert-Cre/wt' in the project titled:
+    Discovery-Neuromodulator circuit dynamics during foraging - Subproject 1 Electrophysiological Recordings from NM Neurons During Behavior" 
+    Answer: {'subject.subject_details.genotype':'Sert-Cre/wt', "data_description.project_name":"
+    Discovery-Neuromodulator circuit dynamics during foraging - Subproject 1 Electrophysiological Recordings from NM Neurons During Behavior"}
+    3. 
+    Question: "Retrieve records for subject x where qc evaluations for behaviour passed"
+    Answer: {"subject.subject_id": "792288","quality_control.metrics": { $elemMatch: { "modality.name": "Behavior", "latest_status": "Pass"} }}
+    4.
+    Question: Retrieve records from the openscope project where the session type is OPHYS_9_moving_texture.
+    Answer: 
+    { "data_description.project_name": "OpenScope","acquisition.acquisition_type": "OPHYS_9_moving_texture"}
+    """
+
+    additional_fields = f"""
+If the additional fields are not empty. This is was inputted by the user: ({additional_fields}). If the fields don't overlap with what you were originally planning on executing,
+ensure that the fields are included in the final aggregation pipeline.
 """
 
     messages = [
@@ -1101,6 +1109,10 @@ Answer:
                 },
                 {
                     "type": "text",
+                    "text": f"{additional_fields}",
+                },
+                {
+                    "type": "text",
                     "text": f"{examples}",
                 },
                 {
@@ -1110,4 +1122,4 @@ Answer:
         },
     ]
 
-    return messages
+    return messages 

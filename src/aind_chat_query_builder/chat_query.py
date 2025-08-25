@@ -18,12 +18,12 @@ class ChatQueryBuilder:
         self,
         query: str,
         version: Literal["v1", "v2"],
-        project_name: str = None,
+        selectors: dict = None
     ):
         """Init class"""
         self.query = query
         self.version = version
-        self.project_name = project_name
+        self.selectors = selectors
 
     async def simple_query_builder(self):
         """
@@ -48,10 +48,12 @@ class ChatQueryBuilder:
         Returns list of the aggregation pipeline
         """
 
-        prompt = get_complex_v2_prompt(query=self.query)
+        prompt = get_complex_v2_prompt(
+            query=self.query,
+            selectors = self.selectors
+            )
         response = await complex_agent_v2.ainvoke(prompt)
         if "agg_pipeline" in response.tool_calls[0]["args"]:
             answer = response.tool_calls[0]["args"]["agg_pipeline"]
 
-        # Create/ append pipeline based on toggles
         return answer
